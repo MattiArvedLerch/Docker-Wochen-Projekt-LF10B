@@ -1,0 +1,13 @@
+:80 {
+    handle_path /dashboard* {
+        reverse_proxy dashboard:3000
+    }
+
+    handle_path /wiki* {
+        reverse_proxy wiki:3000
+    }
+
+    handle {
+        reverse_proxy nextcloud:80
+    }
+}

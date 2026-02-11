@@ -1,0 +1,9 @@
+title: Docker Projekt – IT-Infrastruktur
+theme: dark
+color: slate
+
+layout:
+  Infrastructure:
+    style: column
+
+headerStyle: clean

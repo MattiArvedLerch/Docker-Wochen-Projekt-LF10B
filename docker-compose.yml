@@ -1,0 +1,159 @@
+
+
+networks:
+  web:
+  internal:
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+#DB für Nextcloud
+
+  db:
+    image: mariadb:10.11
+    container_name: nextcloud-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: nextcloudpass
+    volumes:
+      - ./db:/var/lib/mysql
+    networks:
+      - internal
+
+#Nextcloud wie gefordert
+
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud
+    depends_on:
+      - db
+    volumes:
+      - ./nextcloud/data:/var/www/html
+    environment:
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: nextcloudpass
+      MYSQL_HOST: db
+    networks:
+      - web
+      - internal
+
+#Monitoring Darstellung mit Grafana
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "1337:3000"
+    volumes:
+      - ./monitoring/grafana:/var/lib/grafana
+    networks:
+      - web
+
+#Genaue Metriken Sammeln mit Prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - web
+
+#FTP Server für Backups
+
+  ftp:
+    image: fauria/vsftpd
+    container_name: ftp-backup
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    environment:
+      FTP_USER: backup
+      FTP_PASS: backup123
+      PASV_MIN_PORT: 30000
+      PASV_MAX_PORT: 30009
+      PASV_ADDRESS: 127.0.0.1
+    volumes:
+      - ./ftp/data:/home/vsftpd
+    networks:
+      - internal
+
+#Backup Software
+
+  backup:
+    image: alpine
+    container_name: backup
+    depends_on:
+      - nextcloud
+      - ftp
+    volumes:
+      - ./nextcloud/data:/data:ro
+      - ./backup:/backup
+    command: >
+      sh -c "apk add --no-cache lftp &&
+      while true; do
+        lftp -u backup,backup123 ftp://ftp-backup -e 'mirror -R /data /nextcloud-backup; bye';
+        sleep 3600;
+      done"
+    networks:
+      - internal
+
+
+  dashboard:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: dashboard
+    volumes:
+      - ./homepage/config:/app/config
+    networks:
+      - web
+
+#Wiki Block (Zusatzaufgabe)
+  wiki-db:
+    image: postgres:15
+    container_name: wiki-db
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wikipass
+    volumes:
+      - ./wiki/db:/var/lib/postgresql/data
+    networks:
+      - internal
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    container_name: wiki
+    depends_on:
+      - wiki-db
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: wiki-db
+      DB_PORT: 5432
+      DB_USER: wiki
+      DB_PASS: wikipass
+      DB_NAME: wiki
+      BASE_URL: http://10.145.240.109/wiki
+    ports:
+      - "3001:3000"
+    networks:
+      - web
+      - internal

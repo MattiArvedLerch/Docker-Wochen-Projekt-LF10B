@@ -1,0 +1,14 @@
+- Infrastructure:
+    - Nextcloud:
+        icon: nextcloud
+        href: http://10.145.240.109
+        description: Cloud-Dateiaustausch
+
+    - Grafana:
+        icon: grafana
+        href: http://10.145.240.109:1337
+        description: Monitoring & Metriken
+
+    - FTP Backup:
+        icon: ftp
+        description: Backup-Server (intern)

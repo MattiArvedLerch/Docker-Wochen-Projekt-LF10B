@@ -1,0 +1,15 @@
+# Runtime data
+nextcloud/
+wiki/
+backup/
+ftp/
+db/
+minecraft/
+
+# Monitoring runtime data
+monitoring/grafana/
+
+# Database files
+*.db
+ibdata*
+ib_logfile*
