@@ -37,6 +37,22 @@ services:
     networks:
       - internal
 
+
+#DB fürs Wiki
+
+  wiki-db:
+    image: postgres:15
+    container_name: wiki-db
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wikijs
+      POSTGRES_PASSWORD: wikijs
+    volumes:
+      - ./wiki/db:/var/lib/postgresql/data
+    networks:
+      - internal
+
+
 #Nextcloud wie gefordert
 
   nextcloud:
@@ -51,21 +67,28 @@ services:
       MYSQL_USER: nextcloud
       MYSQL_PASSWORD: nextcloudpass
       MYSQL_HOST: db
+      OVERWRITEWEBROOT: /nextcloud
+      OVERWRITECLIURL: http://10.145.240.109/nextcloud
+      OVERWRITEPROTOCOL: http
     networks:
       - web
       - internal
+
+
 
 #Monitoring Darstellung mit Grafana
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    ports:
-      - "1337:3000"
+    environment:
+      GF_SERVER_ROOT_URL: /grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - ./monitoring/grafana:/var/lib/grafana
     networks:
       - web
+
 
 #Genaue Metriken Sammeln mit Prometheus
 
@@ -128,17 +151,7 @@ services:
       - web
 
 #Wiki Block (Zusatzaufgabe)
-  wiki-db:
-    image: postgres:15
-    container_name: wiki-db
-    environment:
-      POSTGRES_DB: wiki
-      POSTGRES_USER: wiki
-      POSTGRES_PASSWORD: wikipass
-    volumes:
-      - ./wiki/db:/var/lib/postgresql/data
-    networks:
-      - internal
+
   wiki:
     image: ghcr.io/requarks/wiki:2
     container_name: wiki
@@ -148,12 +161,11 @@ services:
       DB_TYPE: postgres
       DB_HOST: wiki-db
       DB_PORT: 5432
-      DB_USER: wiki
-      DB_PASS: wikipass
+      DB_USER: wikijs
+      DB_PASS: wikijs
       DB_NAME: wiki
-      BASE_URL: http://10.145.240.109/wiki
     ports:
       - "3001:3000"
     networks:
-      - web
       - internal
+

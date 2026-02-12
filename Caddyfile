@@ -1,13 +1,26 @@
-:80 {
-    handle_path /dashboard* {
-        reverse_proxy dashboard:3000
+http:// {
+    
+    handle /nextcloud* {
+        uri strip_prefix /nextcloud
+        reverse_proxy nextcloud:80
     }
 
-    handle_path /wiki* {
+handle /grafana* {
+    reverse_proxy grafana:3000
+
+    }
+
+    handle /wiki* {
+        uri strip_prefix /wiki
         reverse_proxy wiki:3000
     }
 
+    handle /dashboard* {
+        uri strip_prefix /dashboard
+        reverse_proxy dashboard:3000
+    }
+
     handle {
-        reverse_proxy nextcloud:80
+        respond "Service not found" 404
     }
 }
