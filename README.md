@@ -74,7 +74,7 @@ Umsetzung eines Reverse-Proxy-Konzepts gemäß Anforderung
 Dateiablage und Kollaboration
 
 Zugriff über:
-http://10.145.240.109
+http://10.145.240.109/nextcloud
 
 3. Dashboard / Landingpage (Homepage)
 
