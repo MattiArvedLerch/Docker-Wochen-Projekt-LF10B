@@ -90,7 +90,8 @@ Prometheus sammelt Metriken
 Grafana visualisiert diese Metriken
 
 Zugriff auf Grafana:
-http://10.145.240.109:1337
+(http://10.145.240.109:1337)
+http://10.145.240.109/grafana
 
 5. Backup-System
 
